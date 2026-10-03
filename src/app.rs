@@ -46,7 +46,11 @@ fn next_number(args: &mut impl Iterator<Item = String>, name: &str) -> f32 {
 }
 
 fn parse_args() -> Options {
-    let mut opts = Options { map: MapConfig::default(), debug: false, list: false };
+    let mut opts = Options {
+        map: MapConfig::default(),
+        debug: false,
+        list: false,
+    };
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -154,7 +158,10 @@ fn run_session(
         }
         silent_polls = 0;
 
-        match buf[0] {
+        // Account for Windows hidapi prepending a report ID prefix byte (0x00)
+        let report_id = if buf[0] != 0 { buf[0] } else { buf[1] };
+
+        match report_id {
             // A status report resets the data reporting mode, so set it up again.
             protocol::IN_STATUS => init_controller(dev).map_err(hid_err)?,
             protocol::IN_EXT_21 => {
