@@ -85,23 +85,23 @@ fn list_devices(api: &HidApi) {
     }
 }
 
-/// The Wii Remote Plus shares the Pro Controller's product id; its product
-/// string ends in "-TR" while the Pro Controller's ends in "-UC".
+/// Matches Nintendo Vendor ID (0x057E) and Wii U Pro Controller Product ID (0x0330).
 fn is_wiiu_pro(d: &DeviceInfo) -> bool {
-    d.vendor_id() == protocol::NINTENDO_VID
-        && d.product_id() == protocol::WIIU_PRO_PID
-        && d.product_string().map_or(true, |s| s.is_empty() || s.contains("UC"))
+    d.vendor_id() == protocol::NINTENDO_VID && d.product_id() == protocol::WIIU_PRO_PID
 }
 
 fn open_controller(api: &mut HidApi) -> Option<HidDevice> {
     if api.refresh_devices().is_err() {
         return None;
     }
+
+    // Search specifically by VID and PID
     let info = api.device_list().find(|d| is_wiiu_pro(d))?;
+
     match info.open_device(api) {
         Ok(dev) => Some(dev),
         Err(e) => {
-            eprintln!("Found the controller but could not open it: {e}");
+            eprintln!("Found Wii U Pro Controller ({:04x}:{:04x}) but could not open it: {e}", info.vendor_id(), info.product_id());
             None
         }
     }
@@ -145,8 +145,6 @@ fn run_session(
     loop {
         let n = dev.read_timeout(&mut buf, 500).map_err(hid_err)?;
         if n == 0 {
-            // The controller streams ~100 reports/s once initialised, so a
-            // quiet link means it dropped back to its default mode or left.
             silent_polls += 1;
             if silent_polls >= 20 {
                 return Err("controller stopped responding".into());
@@ -158,11 +156,9 @@ fn run_session(
         }
         silent_polls = 0;
 
-        // Account for Windows hidapi prepending a report ID prefix byte (0x00)
         let report_id = if buf[0] != 0 { buf[0] } else { buf[1] };
 
         match report_id {
-            // A status report resets the data reporting mode, so set it up again.
             protocol::IN_STATUS => init_controller(dev).map_err(hid_err)?,
             protocol::IN_EXT_21 => {
                 if let Some(state) = protocol::parse_input_report(&buf[..n]) {
@@ -230,7 +226,6 @@ pub fn main() {
                 if let Err(e) = run_session(&dev, &opts, &mut push) {
                     eprintln!("Controller session ended: {e}");
                 }
-                // Never leave a button stuck down in the game.
                 let _ = push(&XGamepad::default());
                 println!("Controller disconnected. Waiting for it to come back...");
             }
