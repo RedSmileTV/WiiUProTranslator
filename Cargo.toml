@@ -1,0 +1,20 @@
+[package]
+name = "wiiu-pro-xinput"
+version = "0.1.0"
+edition = "2021"
+description = "Turns a Bluetooth Wii U Pro Controller into a virtual Xbox 360 (XInput) gamepad on Windows 11 ARM64"
+license = "MIT"
+readme = "README.md"
+
+# Both dependencies are Windows-only. hidapi is built with its pure-Rust
+# `windows-native` backend (no C compiler / no libusb needed), so the project
+# builds natively for aarch64-pc-windows-msvc.
+[target.'cfg(windows)'.dependencies]
+hidapi = { version = "2.6", default-features = false, features = ["windows-native"] }
+vigem-client = "0.1.4"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
