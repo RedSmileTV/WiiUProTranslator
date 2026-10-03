@@ -3,8 +3,8 @@
 pub const NINTENDO_VID: u16 = 0x057E;
 pub const WIIU_PRO_PID: u16 = 0x0330;
 
-/// Output report size: Report ID (1 byte, 0x00) + payload (22 bytes).
-pub const OUTPUT_REPORT_LEN: usize = 23;
+/// Output report size expected by the controller's HID descriptor (22 bytes).
+pub const OUTPUT_REPORT_LEN: usize = 22;
 
 pub const IN_STATUS: u8 = 0x20;
 pub const IN_EXT_21: u8 = 0x3D;
@@ -18,25 +18,22 @@ pub type OutputReport = [u8; OUTPUT_REPORT_LEN];
 
 pub fn led_report(mask: u8) -> OutputReport {
     let mut r = [0u8; OUTPUT_REPORT_LEN];
-    r[0] = 0x00; // Windows HID Report ID
-    r[1] = OUT_LEDS;
-    r[2] = (mask & 0x0F) << 4;
+    r[0] = OUT_LEDS;
+    r[1] = (mask & 0x0F) << 4;
     r
 }
 
 pub fn report_mode_report(mode: u8) -> OutputReport {
     let mut r = [0u8; OUTPUT_REPORT_LEN];
-    r[0] = 0x00;
-    r[1] = OUT_REPORT_MODE;
-    r[2] = 0x04; // continuous reporting
-    r[3] = mode;
+    r[0] = OUT_REPORT_MODE;
+    r[1] = 0x04; // continuous reporting
+    r[2] = mode;
     r
 }
 
 pub fn status_request_report() -> OutputReport {
     let mut r = [0u8; OUTPUT_REPORT_LEN];
-    r[0] = 0x00;
-    r[1] = OUT_STATUS_REQUEST;
+    r[0] = OUT_STATUS_REQUEST;
     r
 }
 
@@ -44,14 +41,13 @@ pub fn write_register_report(addr: u32, data: &[u8]) -> OutputReport {
     assert!(data.len() <= 16, "register writes are at most 16 bytes");
     let a = addr.to_be_bytes();
     let mut r = [0u8; OUTPUT_REPORT_LEN];
-    r[0] = 0x00;
-    r[1] = OUT_WRITE_MEMORY;
-    r[2] = 0x04; // control register address space
-    r[3] = a[1];
-    r[4] = a[2];
-    r[5] = a[3];
-    r[6] = data.len() as u8;
-    r[7..7 + data.len()].copy_from_slice(data);
+    r[0] = OUT_WRITE_MEMORY;
+    r[1] = 0x04; // control register address space
+    r[2] = a[1];
+    r[3] = a[2];
+    r[4] = a[3];
+    r[5] = data.len() as u8;
+    r[6..6 + data.len()].copy_from_slice(data);
     r
 }
 
@@ -98,7 +94,6 @@ pub fn parse_input_report(buf: &[u8]) -> Option<ProState> {
         return None;
     }
 
-    // Determine report ID offset depending on whether hidapi prefixed a Report ID byte
     let (report_id, payload) = if buf[0] == IN_EXT_21 {
         (buf[0], &buf[1..])
     } else if buf.len() >= 13 && buf[1] == IN_EXT_21 {
