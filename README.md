@@ -13,7 +13,7 @@ The Wii Remote protocol parsing and the Xbox mapping are unit-tested (`cargo tes
 ## What you need
 
 1. **Windows 11** with a working Bluetooth adapter.
-2. **A virtual gamepad driver: [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases)**, version **1.21.442 or newer** (that is the first release with an ARM64 build). Windows has no way to create a virtual XInput controller from a normal program, so some driver is unavoidable; ViGEmBus is the ARM64-capable one, and it is *not* the old SCP driver. Note that ViGEmBus's author archived the project in November 2023, but the installers remain available.
+2. **A virtual gamepad driver: [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases)**, version **1.21.442 or newer** (that is the first release with an ARM64 build) which is important if using Windows 11 ARM. Windows has no way to create a virtual XInput controller from a normal program, so some driver is unavoidable; ViGEmBus is the ARM64-capable one, and it is *not* the old SCP driver. Note that ViGEmBus's author archived the project in November 2023, but the installers remain available.
 3. This program (download `wiiu-pro-translator-windows-arm64.exe` (or `wiiu-pro-translator-windows-x86_64.exe` for a regular Intel/AMD PC) from the Releases page or the latest Actions run, or build it yourself, see below).
 
 ## Pairing the controller
