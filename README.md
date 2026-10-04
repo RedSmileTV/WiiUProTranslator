@@ -8,13 +8,13 @@ Use a **Bluetooth Wii U Pro Controller** as a regular **Xbox 360 (XInput) contro
 
 ## Status
 
-The Wii Remote protocol parsing and the Xbox mapping are unit-tested (`cargo test`). The Windows glue code (Bluetooth HID plus virtual pad) was written against the documented APIs and is built for ARM64 by CI, but it has **not been verified on real hardware yet**. If something misbehaves, please open an issue and include the output of `wiiu-pro-xinput --debug` and `wiiu-pro-xinput --list`.
+The Wii Remote protocol parsing and the Xbox mapping are unit-tested (`cargo test`). The Windows glue code (Bluetooth HID plus virtual pad) was written against the documented APIs and is built for ARM64 by CI, but it has **not been verified on real hardware yet**. If something misbehaves, please open an issue and include the output of `wiiu-pro-translator --debug` and `wiiu-pro-translator --list`.
 
 ## What you need
 
 1. **Windows 11 ARM64** with a working Bluetooth adapter.
 2. **A virtual gamepad driver: [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases)**, version **1.21.442 or newer** (that is the first release with an ARM64 build). Windows has no way to create a virtual XInput controller from a normal program, so some driver is unavoidable; ViGEmBus is the ARM64-capable one, and it is *not* the old SCP driver. Note that ViGEmBus's author archived the project in November 2023, but the installers remain available.
-3. This program (download `wiiu-pro-xinput.exe` from the Releases page or the latest Actions run, or build it yourself, see below).
+3. This program (download `wiiu-pro-translator.exe` from the Releases page or the latest Actions run, or build it yourself, see below).
 
 ## Pairing the controller
 
@@ -25,12 +25,12 @@ The Wii Remote protocol parsing and the Xbox mapping are unit-tested (`cargo tes
 
 Bluetooth pairing of Nintendo controllers varies between adapters; if it won't stay connected, remove the device in Windows and pair it again.
 
-The program finds the controller by its USB/Bluetooth IDs (vendor `057E`, product `0330`), not by its Windows device name. After pairing, `wiiu-pro-xinput.exe --list` should show a line starting with `057e:0330`.
+The program finds the controller by its USB/Bluetooth IDs (vendor `057E`, product `0330`), not by its Windows device name. After pairing, `wiiu-pro-translator.exe --list` should show a line starting with `057e:0330`.
 
 ## Usage
 
 ```
-wiiu-pro-xinput.exe [--nintendo-layout] [--deadzone 8] [--range 1100] [--debug] [--list] [--help]
+wiiu-pro-translator.exe [--nintendo-layout] [--deadzone 8] [--range 1100] [--debug] [--list] [--help]
 ```
 
 Run it from a terminal (PowerShell or Windows Terminal) and leave the window open while you play; closing it unplugs the virtual pad. The program waits for the controller if it isn't connected yet (press a button on the controller to wake it) and reconnects automatically if it drops.
@@ -79,7 +79,7 @@ cargo build --release
 cargo test
 ```
 
-The binary is `target\release\wiiu-pro-xinput.exe`. The protocol and mapping code in `src/protocol.rs` has no Windows dependencies, so `cargo test` also runs on other platforms; the program itself only runs on Windows. The GitHub Actions workflow in `.github/workflows/build.yml` runs the tests and the release build on a native `windows-11-arm` runner for every push to `main` and every pull request, checks that the result really is an ARM64 executable, uploads it as a build artifact, and attaches it to releases when you push a `v*` tag.
+The binary is `target\release\wiiu-pro-translator.exe`. The protocol and mapping code in `src/protocol.rs` has no Windows dependencies, so `cargo test` also runs on other platforms; the program itself only runs on Windows. The GitHub Actions workflow in `.github/workflows/build.yml` runs the tests and the release build on a native `windows-11-arm` runner for every push to `main` and every pull request, checks that the result really is an ARM64 executable, uploads it as a build artifact, and attaches it to releases when you push a `v*` tag.
 
 ## How it works
 
