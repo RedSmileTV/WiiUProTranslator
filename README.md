@@ -14,7 +14,7 @@ The Wii Remote protocol parsing and the Xbox mapping are unit-tested (`cargo tes
 
 1. **Windows 11 ARM64** with a working Bluetooth adapter.
 2. **A virtual gamepad driver: [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases)**, version **1.21.442 or newer** (that is the first release with an ARM64 build). Windows has no way to create a virtual XInput controller from a normal program, so some driver is unavoidable; ViGEmBus is the ARM64-capable one, and it is *not* the old SCP driver. Note that ViGEmBus's author archived the project in November 2023, but the installers remain available.
-3. This program (download `wiiu-pro-translator.exe` from the Releases page or the latest Actions run, or build it yourself, see below).
+3. This program (download `wiiu-pro-translator-windows-arm64.exe` (or `wiiu-pro-translator-windows-x86_64.exe` for a regular Intel/AMD PC) from the Releases page or the latest Actions run, or build it yourself, see below).
 
 ## Pairing the controller
 
@@ -79,7 +79,7 @@ cargo build --release
 cargo test
 ```
 
-The binary is `target\release\wiiu-pro-translator.exe`. The protocol and mapping code in `src/protocol.rs` has no Windows dependencies, so `cargo test` also runs on other platforms; the program itself only runs on Windows. The GitHub Actions workflow in `.github/workflows/build.yml` runs the tests and the release build on a native `windows-11-arm` runner for every push to `main` and every pull request, checks that the result really is an ARM64 executable, uploads it as a build artifact, and attaches it to releases when you push a `v*` tag.
+The binary is `target\release\wiiu-pro-translator.exe`. The protocol and mapping code in `src/protocol.rs` has no Windows dependencies, so `cargo test` also runs on other platforms; the program itself only runs on Windows. The GitHub Actions workflow in `.github/workflows/build.yml` runs the tests and the release build for both ARM64 (native `windows-11-arm` runner) and x86_64 (`windows-latest`) on every push to `main` and every pull request, checks that each result really is an executable of the right architecture, uploads both as build artifacts, and attaches both (`wiiu-pro-translator-windows-arm64.exe` and `wiiu-pro-translator-windows-x86_64.exe`) to the release when you push a `v*` tag.
 
 ## How it works
 
