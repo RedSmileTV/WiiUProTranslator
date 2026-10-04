@@ -1,4 +1,4 @@
-# wiiu-pro-xinput
+# WiiUProTranslator
 
 Use a **Bluetooth Wii U Pro Controller** as a regular **Xbox 360 (XInput) controller** on **Windows 11 ARM64**.
 
