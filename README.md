@@ -2,7 +2,7 @@
 
 Use a **Bluetooth Wii U Pro Controller** as a regular **Xbox 360 (XInput) controller** on **Windows 11 ARM64**.
 
-- Written in Rust, builds natively for `aarch64-pc-windows-msvc`.
+- Written in Rust, builds  for `x86_64-pc-windows-msvc` and `aarch64-pc-windows-msvc`.
 - Reads the controller straight from Windows' own Bluetooth HID stack. No SCP, no DS4Windows, no Wiimote drivers, no x64 emulation.
 - Presents a virtual Xbox 360 pad, so every XInput game and launcher sees an ordinary Xbox controller.
 
