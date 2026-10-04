@@ -1,6 +1,6 @@
 [package]
-name = "wiiu-pro-xinput"
-version = "0.1.0"
+name = "wiiu-pro-translator"
+version = "1.0.1"
 edition = "2021"
 description = "Turns a Bluetooth Wii U Pro Controller into a virtual Xbox 360 (XInput) gamepad on Windows 11 ARM64"
 license = "MIT"

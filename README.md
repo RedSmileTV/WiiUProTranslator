@@ -8,13 +8,13 @@ Use a **Bluetooth Wii U Pro Controller** as a regular **Xbox 360 (XInput) contro
 
 ## Status
 
-The Wii Remote protocol parsing and the Xbox mapping are unit-tested (`cargo test`). The Windows glue code (Bluetooth HID plus virtual pad) was written against the documented APIs and is built for ARM64 by CI, but it has **not been verified on real hardware yet**. If something misbehaves, please open an issue and include the output of `wiiu-pro-xinput --debug` and `wiiu-pro-xinput --list`.
+The Wii Remote protocol parsing and the Xbox mapping are unit-tested (`cargo test`). The Windows glue code (Bluetooth HID plus virtual pad) was written against the documented APIs and is built for ARM64 by CI, but it has **not been verified on real hardware yet**. If something misbehaves, please open an issue and include the output of `wiiu-pro-translator --debug` and `wiiu-pro-translator --list`.
 
 ## What you need
 
 1. **Windows 11 ARM64** with a working Bluetooth adapter.
 2. **A virtual gamepad driver: [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases)**, version **1.21.442 or newer** (that is the first release with an ARM64 build). Windows has no way to create a virtual XInput controller from a normal program, so some driver is unavoidable; ViGEmBus is the ARM64-capable one, and it is *not* the old SCP driver. Note that ViGEmBus's author archived the project in November 2023, but the installers remain available.
-3. This program (download `wiiu-pro-xinput.exe` from the Releases page or the latest Actions run, or build it yourself, see below).
+3. This program (download `wiiu-pro-translator.exe` from the Releases page or the latest Actions run, or build it yourself, see below).
 
 ## Pairing the controller
 
@@ -25,21 +25,24 @@ The Wii Remote protocol parsing and the Xbox mapping are unit-tested (`cargo tes
 
 Bluetooth pairing of Nintendo controllers varies between adapters; if it won't stay connected, remove the device in Windows and pair it again.
 
+The program finds the controller by its USB/Bluetooth IDs (vendor `057E`, product `0330`), not by its Windows device name. After pairing, `wiiu-pro-translator.exe --list` should show a line starting with `057e:0330`.
+
 ## Usage
 
 ```
-wiiu-pro-xinput.exe [--nintendo-layout] [--deadzone 8] [--range 1100] [--debug] [--list]
+wiiu-pro-translator.exe [--nintendo-layout] [--deadzone 8] [--range 1100] [--debug] [--list] [--help]
 ```
 
-Leave the console window open while you play; closing it unplugs the virtual pad. The program waits for the controller if it isn't connected yet and reconnects automatically if it drops.
+Run it from a terminal (PowerShell or Windows Terminal) and leave the window open while you play; closing it unplugs the virtual pad. The program waits for the controller if it isn't connected yet (press a button on the controller to wake it) and reconnects automatically if it drops.
 
 | Option | Meaning |
 | --- | --- |
 | `--nintendo-layout` | Keep button *labels* (Pro A → Xbox A). Default keeps button *positions* (Pro B, the bottom button → Xbox A), which matches how games expect an Xbox pad to feel. |
 | `--deadzone <0-90>` | Radial stick dead zone in percent (default 8). |
-| `--range <raw>` | Raw stick travel from centre to edge (default 1100). Raise it if you can't reach full deflection, lower it if the sticks saturate early. |
-| `--list` | List every HID device Windows can see (to check the controller is visible). |
+| `--range <raw>` | Raw stick travel from centre to edge (default 1100, minimum 100). Raise it if you can't reach full deflection, lower it if the sticks saturate early. |
+| `--list` | List every HID device Windows can see, then exit (to check the controller is visible). |
 | `--debug` | Print each input change. |
+| `-h`, `--help` | Show the built-in help. |
 
 ## Mapping
 
@@ -53,7 +56,19 @@ Leave the console window open while you play; closing it unplugs the virtual pad
 | + / − | Start / Back |
 | Home | Guide |
 
+With the default layout the face buttons follow their *positions*: Pro B (bottom) → Xbox A, Pro A (right) → Xbox B, Pro Y (left) → Xbox X, Pro X (top) → Xbox Y. With `--nintendo-layout` each button keeps its label instead.
+
 Rumble and battery level are not forwarded yet.
+
+## Troubleshooting
+
+| Message / symptom | What to do |
+| --- | --- |
+| `Could not open the ViGEmBus driver` | Install [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases) 1.21.442 or newer (the ARM64 build) and run the program again. |
+| `Waiting for a paired Wii U Pro Controller...` | The controller isn't connected. Press a button to wake it, or re-pair it (see above). Run `--list` and look for `057e:0330`. |
+| `Found Wii U Pro Controller ... but could not open it` | Windows sees the controller but refused access. Make sure no other program is using it, then remove and re-pair the device. |
+| `Controller session ended: controller stopped responding` | The Bluetooth link dropped. The program reconnects on its own; if it keeps happening, re-pair the controller. |
+| Buttons or sticks behave oddly | Run with `--debug` to see the raw state and the resulting Xbox state, and include that output when opening an issue. |
 
 ## Building
 
@@ -61,13 +76,14 @@ Requires the Rust toolchain for `aarch64-pc-windows-msvc` and the Visual Studio 
 
 ```
 cargo build --release
+cargo test
 ```
 
-The binary is `target\release\wiiu-pro-xinput.exe`. The GitHub Actions workflow in `.github/workflows/build.yml` does exactly this on a native `windows-11-arm` runner, checks that the result really is an ARM64 executable, and attaches it to releases when you push a `v*` tag.
+The binary is `target\release\wiiu-pro-translator.exe`. The protocol and mapping code in `src/protocol.rs` has no Windows dependencies, so `cargo test` also runs on other platforms; the program itself only runs on Windows. The GitHub Actions workflow in `.github/workflows/build.yml` runs the tests and the release build on a native `windows-11-arm` runner for every push to `main` and every pull request, checks that the result really is an ARM64 executable, uploads it as a build artifact, and attaches it to releases when you push a `v*` tag.
 
 ## How it works
 
-The Wii U Pro Controller speaks the Wii Remote HID protocol. On connection the program performs the unencrypted extension handshake, sets player LED 1 and switches the controller to report mode `0x3D`, which streams the sticks and buttons about 100 times per second. Each report is decoded (`src/protocol.rs`, plain `std`, fully unit-tested), mapped to an Xbox 360 report with dead-zone handling, and sent to a ViGEmBus virtual pad. Bluetooth access goes through [`hidapi`](https://crates.io/crates/hidapi) with its pure-Rust Windows backend and the pad through [`vigem-client`](https://crates.io/crates/vigem-client), so no C/C++ toolchain is involved.
+The Wii U Pro Controller speaks the Wii Remote HID protocol. The program looks for a HID device with Nintendo's vendor ID (`057E`) and the Pro Controller's product ID (`0330`). On connection it performs the unencrypted extension handshake, sets player LED 1 and switches the controller to report mode `0x3D`, which streams the sticks and buttons about 100 times per second. If the controller sends a status report or goes quiet, the setup is sent again; if it stays silent for about ten seconds the session ends and the program goes back to waiting for it. Each report is decoded (`src/protocol.rs`, plain `std`, fully unit-tested), mapped to an Xbox 360 report with dead-zone handling, and sent to a ViGEmBus virtual pad. Bluetooth access goes through [`hidapi`](https://crates.io/crates/hidapi) with its pure-Rust Windows backend and the pad through [`vigem-client`](https://crates.io/crates/vigem-client), so no C/C++ toolchain is involved.
 
 ## License
 
