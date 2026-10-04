@@ -12,16 +12,17 @@ The Wii Remote protocol parsing and the Xbox mapping are unit-tested (`cargo tes
 
 ## What you need
 
-1. **Windows 11 ARM64** with a working Bluetooth adapter.
-2. **A virtual gamepad driver: [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases)**, version **1.21.442 or newer** (that is the first release with an ARM64 build). Windows has no way to create a virtual XInput controller from a normal program, so some driver is unavoidable; ViGEmBus is the ARM64-capable one, and it is *not* the old SCP driver. Note that ViGEmBus's author archived the project in November 2023, but the installers remain available.
-3. This program (download `wiiu-pro-translator.exe` from the Releases page or the latest Actions run, or build it yourself, see below).
+1. **Windows 11** with a working Bluetooth adapter.
+2. **A virtual gamepad driver: [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases)**, version **1.21.442 or newer** (that is the first release with an ARM64 build) which is important if using Windows 11 ARM. Windows has no way to create a virtual XInput controller from a normal program, so some driver is unavoidable; ViGEmBus is the ARM64-capable one, and it is *not* the old SCP driver. Note that ViGEmBus's author archived the project in November 2023, but the installers remain available.
+3. This program (download `wiiu-pro-translator-windows-arm64.exe` (or `wiiu-pro-translator-windows-x86_64.exe` for a regular Intel/AMD PC) from the Releases page or the latest Actions run, or build it yourself, see below).
 
 ## Pairing the controller
 
 1. Hold the small **SYNC** button on top of the Pro Controller until its LEDs start flashing.
-2. Windows **Settings → Bluetooth & devices → Add device → Bluetooth**, pick **Nintendo RVL-CNT-01-UC**.
-3. If Windows asks for a code, choose the option to pair **without a code**.
-4. Once it shows as connected, run the program.
+2. Windows **Control Panel → Hardware and Sound → Devices and Printers → Add device**, pick **Nintendo RVL-CNT-01-UC**.
+3. If the **Control Panel** redirects you to the **Windows Settings** enter `Control Panel\Hardware and Sound\Devices and Printers` into the URL bar of the Control Panel. 
+4. If Windows asks for a code, choose the option to pair just press next **without entering a code**.
+5. Once it shows as connected, run the program.
 
 Bluetooth pairing of Nintendo controllers varies between adapters; if it won't stay connected, remove the device in Windows and pair it again.
 
@@ -79,7 +80,7 @@ cargo build --release
 cargo test
 ```
 
-The binary is `target\release\wiiu-pro-translator.exe`. The protocol and mapping code in `src/protocol.rs` has no Windows dependencies, so `cargo test` also runs on other platforms; the program itself only runs on Windows. The GitHub Actions workflow in `.github/workflows/build.yml` runs the tests and the release build on a native `windows-11-arm` runner for every push to `main` and every pull request, checks that the result really is an ARM64 executable, uploads it as a build artifact, and attaches it to releases when you push a `v*` tag.
+The binary is `target\release\wiiu-pro-translator.exe`. The protocol and mapping code in `src/protocol.rs` has no Windows dependencies, so `cargo test` also runs on other platforms; the program itself only runs on Windows. The GitHub Actions workflow in `.github/workflows/build.yml` runs whenever you publish a release on GitHub. It runs the tests and the release build for both ARM64 (native `windows-11-arm` runner) and x86_64 (`windows-latest`), checks that each result really is an executable of the right architecture, and then attaches both (`wiiu-pro-translator-windows-arm64.exe` and `wiiu-pro-translator-windows-x86_64.exe`) to that release. It does not run on ordinary pushes or pull requests.
 
 ## How it works
 
