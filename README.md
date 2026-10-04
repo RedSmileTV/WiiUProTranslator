@@ -79,7 +79,7 @@ cargo build --release
 cargo test
 ```
 
-The binary is `target\release\wiiu-pro-translator.exe`. The protocol and mapping code in `src/protocol.rs` has no Windows dependencies, so `cargo test` also runs on other platforms; the program itself only runs on Windows. The GitHub Actions workflow in `.github/workflows/build.yml` runs the tests and the release build for both ARM64 (native `windows-11-arm` runner) and x86_64 (`windows-latest`) on every push to `main` and every pull request, checks that each result really is an executable of the right architecture, uploads both as build artifacts, and attaches both (`wiiu-pro-translator-windows-arm64.exe` and `wiiu-pro-translator-windows-x86_64.exe`) to the release when you push a `v*` tag.
+The binary is `target\release\wiiu-pro-translator.exe`. The protocol and mapping code in `src/protocol.rs` has no Windows dependencies, so `cargo test` also runs on other platforms; the program itself only runs on Windows. The GitHub Actions workflow in `.github/workflows/build.yml` runs whenever you publish a release on GitHub. It runs the tests and the release build for both ARM64 (native `windows-11-arm` runner) and x86_64 (`windows-latest`), checks that each result really is an executable of the right architecture, and then attaches both (`wiiu-pro-translator-windows-arm64.exe` and `wiiu-pro-translator-windows-x86_64.exe`) to that release. It does not run on ordinary pushes or pull requests.
 
 ## How it works
 
